@@ -1,0 +1,409 @@
+{
+  "name": "Agentic Performance Test Pipeline",
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "Start",
+      "type": "n8n-nodes-base.start",
+      "typeVersion": 1,
+      "position": [
+        250,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "command": "docker-compose run --rm log-analyzer"
+      },
+      "name": "1. Log Analyzer",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        450,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "command": "docker-compose run --rm -e WORKLOAD_INCREASE_PERCENTAGE={{$json[\"workloadIncrease\"]}} workload-modeler"
+      },
+      "name": "2. Workload Modeler",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        650,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "command": "docker-compose run --rm -e TARGET_ENVIRONMENT={{$json[\"targetEnv\"]}} script-generator"
+      },
+      "name": "3. Script Generator",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        850,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "command": "docker-compose run --rm test-executor"
+      },
+      "name": "4. Test Executor",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        1050,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "command": "docker-compose run --rm -e TARGET_ENVIRONMENT={{$json[\"targetEnv\"]}} report-synthesizer"
+      },
+      "name": "5. Report Synthesizer",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        1250,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "targetEnv",
+              "value": "staging"
+            },
+            {
+              "name": "workloadIncrease",
+              "value": "50"
+            }
+          ]
+        }
+      },
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        250,
+        100
+      ],
+      "notes": "Set your test parameters here.\n\ntargetEnv: staging, uat, or local\nworkloadIncrease: The percentage to increase load by (e.g., 50)"
+    },
+    {
+      "parameters": {
+        "content": "✅ Performance Test Pipeline Completed Successfully!",
+        "embeds": {
+          "embed": [
+            {
+              "title": "Pipeline Report",
+              "description": "The full test pipeline has finished. You can view the generated report and other artifacts in the `shared-artifacts` directory."
+            }
+          ]
+        }
+      },
+      "name": "Success Notification",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        1450,
+        300
+      ],
+      "notes": "This is a placeholder. Replace with a real notification node like Slack or Email."
+    }
+    {
+      "parameters": {
+        "command": "docker-compose run --rm archivist"
+      },
+      "name": "6. Archivist",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        1450,
+        500
+      ]
+    }
+  ],
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "1. Log Analyzer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "1. Log Analyzer": {
+      "main": [
+        [
+          {
+            "node": "2. Workload Modeler",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "2. Workload Modeler": {
+      "main": [
+        [
+          {
+            "node": "3. Script Generator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "3. Script Generator": {
+      "main": [
+        [
+          {
+            "node": "4. Test Executor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "4. Test Executor": {
+      "main": [
+        [
+          {
+            "node": "5. Report Synthesizer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "5. Report Synthesizer": {
+      "main": [
+        [
+          {
+            "node": "6. Archivist",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "6. Archivist": {
+      "main": [
+        [
+          {
+            "node": "Success Notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config": {
+      "main": [
+        [
+          {
+            "node": "Start",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}
+```
+
+### **Step 2: Update `docker-compose.yml` to Run n8n**
+
+I will now modify your `docker-compose.yml` to remove the old orchestrator and add the new `n8n` service.
+
+```diff
+--- a/docker-compose.yml
++++ b/docker-compose.yml
+@@ -1,20 +1,22 @@
+ version: '3.8'
+ 
+ services:
+-  # New service to build the base image that other services will use
+   agent-base:
+     build: ./docker-base
+     image: agent-base:latest
+ 
+-  orchestrator:
+-    build:
+-      context: ./6-orchestrator-healer
+-    environment:
+-      # The Orchestrator now controls the target environment and workload
+-      - TARGET_ENVIRONMENT=staging # <-- CHANGE THIS to 'uat' or 'local' as needed
+-      - WORKLOAD_INCREASE_PERCENTAGE=50 
+-    volumes:
+-      - /var/run/docker.sock:/var/run/docker.sock
+-      - ./shared-artifacts:/app/shared-artifacts
+-      - ./config.json:/app/config.json # Mount the new config file
+-    command: node index.js
++  n8n:
++    image: n8nio/n8n
++    restart: always
++    ports:
++      - "5678:5678"
++    volumes:
++      - ./n8n-data:/home/node/.n8n
++      - /var/run/docker.sock:/var/run/docker.sock # Allows n8n to run Docker commands
++      - .:/workspace # Mounts the entire project directory inside n8n
++    working_dir: /workspace # Sets the working directory for commands
++    environment:
++      - GENERIC_TIMEZONE=Europe/Berlin
+ 
+   log-analyzer:
+     build: ./1-log-analyzer
+
+```
+
+### **Step 3: Update `.gitignore`**
+
+We need to prevent the local n8n database from being committed to Git.
+
+```diff
+--- a/.gitignore
++++ b/.gitignore
+@@ -23,3 +23,6 @@
+ # Keep the dummy log file and the directory structure
+ !/shared-artifacts/production-logs/dummy-log.log
+ !/shared-artifacts/knowledge_base.json
++
++# n8n local data
++/n8n-data/
+
+```
+
+### **Step 4: Remove the Old Orchestrator**
+
+The `6-orchestrator-healer/` directory and its contents are no longer needed. You should delete this directory from your project.
+
+### **Step 5: Update the `README.md` with New Instructions**
+
+This is a crucial step to explain the new, n8n-based workflow.
+
+```diff
+--- a/README.md
++++ b/README.md
+@@ -5,6 +5,7 @@
+ [![Trivy Scan](https://github.com/YOUR_USERNAME/YOUR_REPONAME/actions/workflows/trivy.yml/badge.svg)](https://github.com/YOUR_USERNAME/YOUR_REPONAME/actions/workflows/trivy.yml)
+ [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+ 
+-This project is a sophisticated, multi-agent system designed to fully automate the performance testing lifecycle. It leverages production log analysis to generate and execute realistic performance tests against non-production environments, incorporating self-healing and self-training capabilities to create a resilient and intelligent pipeline.
++This project is a sophisticated, multi-agent system designed to fully automate the performance testing lifecycle. It uses **n8n** for visual workflow orchestration, allowing for powerful, flexible, and easy-to-understand test pipelines.
+ 
+ The system is containerized using Docker, making it portable and easy to run.
+ 
+@@ -12,6 +13,7 @@
+ - **Automated Production Log Analysis**: Ingests historical production logs to calculate baseline performance metrics like peak Transactions Per Second (TPS).
+ - **Dynamic Workload Modeling**: Translates production metrics and client requirements (e.g., "test at 50% above peak") into a mathematical workload model.
+ - **Advanced JMeter Script Generation**: Automatically creates complex JMeter (`.jmx`) test scripts with features that normally require manual effort:
++- **Visual Orchestration with n8n**: Replaces a rigid script-based orchestrator with a flexible, visual n8n workflow, enabling advanced error handling, branching, and easier integration with tools like Slack and Jira.
+   - **Correlation**: Handles dynamic values like session tokens.
+   - **Parameterization**: Uses external CSV data for realistic inputs (e.g., usernames, passwords).
+   - **Pacing**: Employs a `ConstantThroughputTimer` to precisely control the load.
+@@ -19,10 +21,8 @@
+ - **Multi-Environment Targeting**: Analyzes logs from a production environment to safely execute tests against a configured **Staging**, **UAT**, or **local** environment.
+ - **Self-Healing Pipeline**: The central `Orchestrator` agent can detect failures in the pipeline (e.g., invalid logs, script errors) and attempt to recover or use fallback strategies.
+ - **Self-Training Capabilities**: Agents record their successes and failures to a shared **Knowledge Base**. This allows the system to learn from past mistakes, for example, by trying a different log parser if the default one fails.
+- **Fully Containerized**: All agents are isolated in Docker containers and managed by Docker Compose for easy setup and execution.
+- **Intelligent Reporting**: Automatically analyzes and correlates user-side (JMeter) and server-side (CPU, Memory) metrics to generate a detailed Markdown report with critical issues, observations, and actionable recommendations.
++- **Fully Containerized**: All agents and the n8n orchestrator are isolated in Docker containers and managed by Docker Compose.
++- **Intelligent Reporting**: Automatically generates a detailed Markdown report with critical issues, observations, and actionable recommendations.
+ 
+ ---
+ 
+@@ -49,36 +49,37 @@
+   }
+ }
+ ```
+-
+-**c. Select the Target Environment:**
+-Open the `docker-compose.yml` file. Find the `orchestrator` service and set the `TARGET_ENVIRONMENT` variable to the environment you want to test (e.g., `staging`, `uat`, or `local`).
+-
+-```yaml
+-services:
+-  orchestrator:
+-    environment:
+-      - TARGET_ENVIRONMENT=staging # <-- Change this value
+-      - WORKLOAD_INCREASE_PERCENTAGE=50 
+-```
+ 
+ ### 2. Launch the Pipeline
+ 
+ Open a terminal in the root directory of the project and run the following command to start all services, including the n8n orchestrator:
+ 
+ ```bash
+-docker-compose up --build orchestrator
++docker-compose up --build
+ ```
+ 
+-This command will build all the agent images and start the `Orchestrator`, which will then execute the entire pipeline step-by-step.
++This command will build all agent images and start the n8n service.
++
++### 3. Set Up and Run the n8n Workflow
++
++1. Open your web browser and navigate to **`http://localhost:5678`**.
++2. Complete the one-time n8n owner setup.
++3. Create a new, blank workflow.
++4. Open the `n8n-config/workflow.json` file from this project, copy its entire content.
++5. In the n8n UI, click anywhere on the canvas and paste the copied JSON. The complete pipeline will appear.
++6. **To run the test**, click the **"Execute Workflow"** button in the n8n UI. You can modify test parameters like `targetEnv` in the "Config" node.
+ 
+-### 3. View the Results
++### 4. View the Results
+ 
+ Once the workflow completes, all generated artifacts can be found in the `shared-artifacts/` directory.
+ - **Test Script**: `shared-artifacts/jmeter-scripts/generated_test.jmx`
+@@ -86,12 +87,11 @@
+ 
+ The system is composed of specialized agents orchestrated by **n8n**:
+ 
+-1.  **Log Analyzer**: Parses production logs to establish a performance baseline.
+-2.  **Workload Modeler**: Creates a rich test plan based on the baseline and user requirements.
+-3.  **Script Generator**: Builds an advanced JMeter script tailored to the target environment.
+-4.  **Test Executor**: Performs a sanity check on the script and then executes the full performance test.
+-5.  **Report Synthesizer**: Correlates user-side and server-side metrics to generate an intelligent, detailed report in Markdown format, highlighting issues, observations, and recommendations for stakeholders.
+-6.  **Orchestrator & Healer**: The master agent that controls the pipeline, manages failures, and makes healing decisions based on the shared knowledge base.
++1.  **n8n (Orchestrator)**: A visual workflow that triggers and controls the sequence of all other agents.
++2.  **Log Analyzer**: Parses production logs to establish a performance baseline.
++3.  **Workload Modeler**: Creates a rich test plan based on the baseline and user requirements.
++4.  **Script Generator**: Builds an advanced JMeter script tailored to the target environment.
++5.  **Test Executor**: Performs a sanity check and executes the full performance test.
++6.  **Report Synthesizer**: Generates an intelligent, detailed report for stakeholders.
+ 
+ ---
+ 
+
+```
+
+### **Step 6: Push All Changes to Your Git Repository**
+
+Now, run these commands in your terminal to commit and push this major architectural upgrade.
+
+```bash
+# 1. Remove the old orchestrator directory
+git rm -r 6-orchestrator-healer/
+
+# 2. Add all the new and modified files to the staging area
+git add .
+
+# 3. Commit the changes with a descriptive message
+git commit -m "feat: Replace scripted orchestrator with n8n for visual orchestration"
+
+# 4. Push the commit to your remote repository
+git push
+```
+
+Your project is now powered by a much more advanced, flexible, and user-friendly n8n orchestration engine.

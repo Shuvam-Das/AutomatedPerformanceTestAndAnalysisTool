@@ -1,10 +1,5 @@
 # Agentic Performance Testing System
 
-[![CodeQL](https://github.com/YOUR_USERNAME/YOUR_REPONAME/actions/workflows/codeql.yml/badge.svg)](https://github.com/YOUR_USERNAME/YOUR_REPONAME/actions/workflows/codeql.yml)
-[![Super-Linter](https://github.com/YOUR_USERNAME/YOUR_REPONAME/actions/workflows/linter.yml/badge.svg)](https://github.com/YOUR_USERNAME/YOUR_REPONAME/actions/workflows/linter.yml)
-[![Trivy Scan](https://github.com/YOUR_USERNAME/YOUR_REPONAME/actions/workflows/trivy.yml/badge.svg)](https://github.com/YOUR_USERNAME/YOUR_REPONAME/actions/workflows/trivy.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-
 This project is a sophisticated, multi-agent system designed to fully automate the performance testing lifecycle. It leverages production log analysis to generate and execute realistic performance tests against non-production environments, incorporating self-healing and self-training capabilities to create a resilient and intelligent pipeline.
 
 The system is containerized using Docker, making it portable and easy to run.
@@ -92,6 +87,7 @@ Once the pipeline completes, all generated artifacts, including the final report
 - **Test Script**: `shared-artifacts/jmeter-scripts/generated_test.jmx`
 - **Test Report**: `shared-artifacts/test-results/final_report.txt`
 - **Knowledge Base**: `shared-artifacts/knowledge_base.json`
+- **Permanent Archive**: `run_archive/<timestamp>/` (contains all artifacts for a specific run)
 
 ---
 
