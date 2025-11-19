@@ -1,0 +1,12 @@
+{
+  "name": "agentic-system",
+  "version": "1.0.0",
+  "description": "A multi-agent system for automated performance testing.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node orchestrator-agent/index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
