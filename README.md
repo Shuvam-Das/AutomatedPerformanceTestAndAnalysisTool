@@ -19,6 +19,7 @@ The system is containerized using Docker, making it portable and easy to run.
 - **Self-Healing Pipeline**: The central `Orchestrator` agent can detect failures in the pipeline (e.g., invalid logs, script errors) and attempt to recover or use fallback strategies.
 - **Self-Training Capabilities**: Agents record their successes and failures to a shared **Knowledge Base**. This allows the system to learn from past mistakes, for example, by trying a different log parser if the default one fails.
 - **Fully Containerized**: All agents are isolated in Docker containers and managed by Docker Compose for easy setup and execution.
+- **Intelligent Reporting**: Automatically analyzes and correlates user-side (JMeter) and server-side (CPU, Memory) metrics to generate a detailed Markdown report with critical issues, observations, and actionable recommendations.
 
 ---
 
@@ -85,7 +86,7 @@ This command will build all the agent images and start the `Orchestrator`, which
 
 Once the pipeline completes, all generated artifacts, including the final report, can be found in the `shared-artifacts/` directory.
 - **Test Script**: `shared-artifacts/jmeter-scripts/generated_test.jmx`
-- **Test Report**: `shared-artifacts/test-results/final_report.txt`
+- **Test Report**: `shared-artifacts/test-results/final_report.md`
 - **Knowledge Base**: `shared-artifacts/knowledge_base.json`
 
 ---
@@ -98,5 +99,5 @@ The system is composed of six specialized agents that work in sequence:
 2.  **Workload Modeler**: Creates a rich test plan based on the baseline and user requirements.
 3.  **Script Generator**: Builds an advanced JMeter script tailored to the target environment.
 4.  **Test Executor**: Performs a sanity check on the script and then executes the full performance test.
-5.  **Report Synthesizer**: Generates a summary report from the raw test results.
+5.  **Report Synthesizer**: Correlates user-side and server-side metrics to generate an intelligent, detailed report in Markdown format, highlighting issues, observations, and recommendations for stakeholders.
 6.  **Orchestrator & Healer**: The master agent that controls the pipeline, manages failures, and makes healing decisions based on the shared knowledge base.
