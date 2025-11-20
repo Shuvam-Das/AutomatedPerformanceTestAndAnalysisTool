@@ -3,13 +3,14 @@
   "nodes": [
     {
       "parameters": {},
-      "name": "Start",
-      "type": "n8n-nodes-base.start",
+      "name": "Trigger via Postman",
+      "type": "n8n-nodes-base.webhook",
       "typeVersion": 1,
       "position": [
         250,
         300
-      ]
+      ],
+      "webhookId": "a2b3c4d5-e6f7-4a8b-9c1d-0e1f2a3b4c5d"
     },
     {
       "parameters": {
@@ -25,7 +26,7 @@
     },
     {
       "parameters": {
-        "command": "docker-compose run --rm -e WORKLOAD_INCREASE_PERCENTAGE={{$json[\"workloadIncrease\"]}} workload-modeler"
+        "command": "docker-compose run --rm -e WORKLOAD_INCREASE_PERCENTAGE={{$json.body.workloadIncrease}} workload-modeler"
       },
       "name": "2. Workload Modeler",
       "type": "n8n-nodes-base.executeCommand",
@@ -37,7 +38,7 @@
     },
     {
       "parameters": {
-        "command": "docker-compose run --rm -e TARGET_ENVIRONMENT={{$json[\"targetEnv\"]}} script-generator"
+        "command": "docker-compose run --rm -e TARGET_ENVIRONMENT={{$json.body.targetEnv}} script-generator"
       },
       "name": "3. Script Generator",
       "type": "n8n-nodes-base.executeCommand",
@@ -61,7 +62,7 @@
     },
     {
       "parameters": {
-        "command": "docker-compose run --rm -e TARGET_ENVIRONMENT={{$json[\"targetEnv\"]}} report-synthesizer"
+        "command": "docker-compose run --rm -e TARGET_ENVIRONMENT={{$json.body.targetEnv}} report-synthesizer"
       },
       "name": "5. Report Synthesizer",
       "type": "n8n-nodes-base.executeCommand",
@@ -70,30 +71,6 @@
         1250,
         300
       ]
-    },
-    {
-      "parameters": {
-        "values": {
-          "string": [
-            {
-              "name": "targetEnv",
-              "value": "staging"
-            },
-            {
-              "name": "workloadIncrease",
-              "value": "50"
-            }
-          ]
-        }
-      },
-      "name": "Config",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 1,
-      "position": [
-        250,
-        100
-      ],
-      "notes": "Set your test parameters here.\n\ntargetEnv: staging, uat, or local\nworkloadIncrease: The percentage to increase load by (e.g., 50)"
     },
     {
       "parameters": {
@@ -111,11 +88,11 @@
       "type": "n8n-nodes-base.executeCommand",
       "typeVersion": 1,
       "position": [
-        1450,
+        1650,
         300
       ],
       "notes": "This is a placeholder. Replace with a real notification node like Slack or Email."
-    }
+    },
     {
       "parameters": {
         "command": "docker-compose run --rm archivist"
@@ -125,12 +102,12 @@
       "typeVersion": 1,
       "position": [
         1450,
-        500
+        300
       ]
     }
   ],
   "connections": {
-    "Start": {
+    "Trigger via Postman": {
       "main": [
         [
           {
@@ -207,11 +184,11 @@
         ]
       ]
     },
-    "Config": {
+    "6. Archivist": {
       "main": [
         [
           {
-            "node": "Start",
+            "node": "Success Notification",
             "type": "main",
             "index": 0
           }

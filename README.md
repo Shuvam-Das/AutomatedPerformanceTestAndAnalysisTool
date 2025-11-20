@@ -1,6 +1,9 @@
 # Agentic Performance Testing System
 
-This project is a sophisticated, multi-agent system designed to fully automate the performance testing lifecycle. It leverages production log analysis to generate and execute realistic performance tests against non-production environments, incorporating self-healing and self-training capabilities to create a resilient and intelligent pipeline.
+[![CodeQL](https://github.com/YOUR_USERNAME/YOUR_REPONAME/actions/workflows/codeql.yml/badge.svg)](https://github.com/YOUR_USERNAME/YOUR_REPONAME/actions/workflows/codeql.yml) [![Super-Linter](https://github.com/YOUR_USERNAME/YOUR_REPONAME/actions/workflows/linter.yml/badge.svg)](https://github.com/YOUR_USERNAME/YOUR_REPONAME/actions/workflows/linter.yml) [![Trivy Scan](https://github.com/YOUR_USERNAME/YOUR_REPONAME/actions/workflows/trivy.yml/badge.svg)](https://github.com/YOUR_USERNAME/YOUR_REPONAME/actions/workflows/trivy.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+This project is a sophisticated, multi-agent system designed to fully automate the performance testing lifecycle. It uses **n8n** for visual workflow orchestration, allowing for powerful, flexible, and easy-to-understand test pipelines.
 
 The system is containerized using Docker, making it portable and easy to run.
 
@@ -8,17 +11,19 @@ The system is containerized using Docker, making it portable and easy to run.
 
 ## ✨ Key Features
 
-- **Automated Production Log Analysis**: Ingests historical production logs to calculate baseline performance metrics like peak Transactions Per Second (TPS).
-- **Dynamic Workload Modeling**: Translates production metrics and client requirements (e.g., "test at 50% above peak") into a mathematical workload model.
+- **Visual Orchestration with n8n**: Replaces a rigid script-based orchestrator with a flexible, visual n8n workflow, enabling advanced error handling, branching, and easier integration with tools like Slack and Jira.
+- **Automated Production Log Analysis**: Ingests historical production logs to calculate baseline performance metrics.
+- **Dynamic Workload Modeling**: Translates production metrics into a mathematical workload model.
+- **Automatic Archiving & Versioning**: Every test run's artifacts (reports, scripts, models) are automatically archived in a timestamped folder and committed to Git, creating a historical "memory" for future analysis and self-training.
 - **Advanced JMeter Script Generation**: Automatically creates complex JMeter (`.jmx`) test scripts with features that normally require manual effort:
   - **Correlation**: Handles dynamic values like session tokens.
   - **Parameterization**: Uses external CSV data for realistic inputs (e.g., usernames, passwords).
   - **Pacing**: Employs a `ConstantThroughputTimer` to precisely control the load.
   - **Think Time**: Simulates realistic user pauses.
 - **Multi-Environment Targeting**: Analyzes logs from a production environment to safely execute tests against a configured **Staging**, **UAT**, or **local** environment.
-- **Self-Healing Pipeline**: The central `Orchestrator` agent can detect failures in the pipeline (e.g., invalid logs, script errors) and attempt to recover or use fallback strategies.
 - **Self-Training Capabilities**: Agents record their successes and failures to a shared **Knowledge Base**. This allows the system to learn from past mistakes, for example, by trying a different log parser if the default one fails.
-- **Fully Containerized**: All agents are isolated in Docker containers and managed by Docker Compose for easy setup and execution.
+- **Fully Containerized**: All agents and the n8n orchestrator are isolated in Docker containers and managed by Docker Compose.
+- **Intelligent Reporting**: Automatically generates a detailed Markdown report with critical issues, observations, and actionable recommendations.
 
 ---
 
@@ -38,7 +43,7 @@ Verify your installation by running `docker --version` and `docker-compose --ver
 ### 1. Configuration
 
 **a. Place Production Logs:**
-Place your historical application logs into the `shared-artifacts/production-logs/` directory. A `dummy-log.log` is included as an example. The `log-analyzer` agent will process all files in this directory.
+Place your historical application logs into the `shared-artifacts/production-logs/` directory. A `dummy-log.log` is included as an example.
 
 **b. Define Target Environments:**
 Open the `config.json` file in the root directory. This file defines the servers your tests will run against. Modify the `staging`, `uat`, or `local` environments to match your infrastructure.

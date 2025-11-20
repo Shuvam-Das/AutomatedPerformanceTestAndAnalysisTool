@@ -1,0 +1,36 @@
+{
+	"info": {
+		"_postman_id": "a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d",
+		"name": "Agentic Performance Testing Pipeline",
+		"description": "A Postman collection to trigger the automated performance testing pipeline orchestrated by n8n.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Trigger Full Pipeline",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"targetEnv\": \"local\",\n    \"workloadIncrease\": \"30\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{n8n_webhook_url}}",
+					"host": [
+						"{{n8n_webhook_url}}"
+					]
+				},
+				"description": "This request triggers the entire agentic performance testing pipeline.\n\n**Parameters**:\n\n*   `targetEnv` (string): The environment to run the test against. Can be `local`, `staging`, or `uat` as defined in your `config.json`.\n*   `workloadIncrease` (string): The percentage by which to increase the workload compared to the production baseline (e.g., \"50\" for a 50% increase)."
+			},
+			"response": []
+		}
+	],
+	"event": [],
+	"variable": []
+}
