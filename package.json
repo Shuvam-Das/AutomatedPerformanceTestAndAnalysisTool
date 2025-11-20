@@ -1,0 +1,9 @@
+{
+  "name": "@agents/common",
+  "version": "1.0.0",
+  "private": true,
+  "main": "logger.js",
+  "dependencies": {
+    "pino": "^8.16.0"
+  }
+}

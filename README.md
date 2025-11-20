@@ -17,6 +17,7 @@ The system is deployed via a CI/CD pipeline and runs on a serverless architectur
 - **Zero Manual Intervention**: An **Amazon EventBridge** rule automatically triggers the pipeline on a schedule (e.g., daily), making the system fully autonomous.
 - **Live Observability**:
   - **Live Logs**: All application and agent logs are streamed in real-time to **Amazon CloudWatch**.
+  - **Structured & Correlated Logging**: Logs are generated in JSON format and correlated with a unique ID per run, enabling deep analysis and tracing similar to platforms like Dynatrace.
   - **Live Status**: The **AWS Step Functions** console provides a live, visual graph of the pipeline's execution status.
 
 ---
@@ -44,6 +45,12 @@ Once deployed, you can monitor the application in the AWS Management Console:
 1.  Navigate to the **Amazon CloudWatch** service.
 2.  In the left menu, click on **Log groups**.
 3.  You will see log groups for each Lambda function (e.g., `/aws/lambda/LogAnalyzerAgent`) and for the Fargate task. Click on any log group to view and search the live log streams.
+4.  **To trace a single pipeline run**, navigate to **Logs Insights** in CloudWatch. Select the log groups for all your agents and run a query like the following to see all logs for a specific execution:
+    ```sql
+    fields @timestamp, @message, service, correlationId
+    | filter correlationId = "arn:aws:states:us-east-1:123456789012:execution:PerformanceTestingStateMachine:your-execution-id"
+    | sort @timestamp asc
+    ```
 
 ---
 
